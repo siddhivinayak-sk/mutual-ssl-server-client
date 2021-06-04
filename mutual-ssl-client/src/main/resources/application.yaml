@@ -1,0 +1,46 @@
+spring:
+  main:
+    banner-mode: "off"
+logging.config: classpath:logback-spring.xml
+
+calls:
+  - http-url: 'https://www.myserver.com/test'
+    http-method: GET
+    key-material: true
+    key-material-type: PKCS12
+    key-material-path: classpath:client.p12.jks
+    key-material-secret: 123456
+    trust-material: true
+    trust-material-type: JKS
+    trust-material-path: classpath:client_truststore.jks
+    trust-material-secret: 123456
+    diable-cookie-management: true
+    set-custom-connection-manager: true
+    headers:
+      #Accept: '*/*'
+      Connection: keep-alive
+      Host: www.myclient.com
+    query-parameters:
+      abc: abc
+    #response-file: c:/temp/myserver.htm
+
+  - http-url: 'https://www.myserver.com/test'
+    http-method: POST
+    key-material: true
+    key-material-type: PKCS12
+    key-material-path: classpath:client.p12.jks
+    key-material-secret: 123456
+    trust-material: true
+    trust-material-type: JKS
+    trust-material-path: classpath:client_truststore.jks
+    trust-material-secret: 123456
+    diable-cookie-management: true
+    set-custom-connection-manager: true
+    headers:
+      #Accept: '*/*'
+      Connection: keep-alive
+      Host: www.myclient.com
+    query-parameters:
+      abc: abc
+    request-body-path: classpath:readme.txt
+    #response-file: c:/temp/myserver.htm

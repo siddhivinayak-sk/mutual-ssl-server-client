@@ -1,0 +1,63 @@
+server.port : 443
+spring.application.name: mutual-ssl-server
+server.servlet.context-path : /
+spring.main.banner-mode: off
+spring.cloud.task.closecontext-enabled: true
+
+#Logging configuration
+logging.path: '.'
+logging.file: mutual-ssl-server.log
+logging.config: 'classpath:log4j2.xml'
+
+#Properties for certificate validation
+security.require-ssl: false
+server.ssl.key-store-type : PKCS12
+server.ssl.key-alias : 1
+server.ssl.key-store : classpath:server.p12.jks
+server.ssl.key-store-password : 123456
+
+#Properties for SSL
+server.ssl.client-auth : need
+server.ssl.trust-store-type : JKS
+server.ssl.trust-store : classpath:server_truststore.jks
+server.ssl.trust-store-password : 123456
+
+#Property to match the common names from the certificate provided.
+cn.usernames : www.myclient.com
+
+#Additional properties for Request Certificate Validation
+header.validation.required : false
+validation.keystoretype : JKS
+validation.keystorePath : classpath:server_truststore.jks
+validation.keystoreSecret : 123456
+validation.publicKeySequence :  clientcert
+
+#Define below property as custom bean configured for Jasypt
+jasypt.encryptor.bean: encryptorBean
+
+#Jasypt Encryption configuration; In case of online=false, provide jasypt key from boot application argument e.g. secretCode=myapp123
+encryption.get-key-online: true
+encryption.algorithm: PBEWithMD5AndDES
+encryption.key-obtention-iterations: 1000
+encryption.pool-size: 1
+encryption.provider-name: SunJCE
+encryption.salt-generator-class-name: org.jasypt.salt.RandomSaltGenerator
+encryption.string-output-type: base64
+
+#KeyVault Connection Configuration
+#this property is fixed for Azure Vault as azure has common login url
+azure-keyvault.azure-login-uri: https://login.microsoftonline.com/
+#this property is fixed for Azure Vault as azure vault has common scope url
+azure-keyvault.scope: https://vault.azure.net
+#Obtain keyvault URL from azure portal vault page
+azure-keyvault.resource-uri: 
+#Obtain tenantId/directoryID from azure kayvault page
+azure-keyvault.tenant-id: 
+#AzureKeyVault client id configured into access policy of Azure KeyVault 
+azure-keyvault.client-id: 
+#AzureKeyVault client key configured into access policy of Azure KeyVault
+azure-keyvault.client-key: 
+#Name of secret stored into azure vault
+azure-keyvault.secret-name: secretCode
+#Default value of secret property stored into vault. Default will be used in case of any exception
+azure-keyvault.secret-default-value: myapp123
