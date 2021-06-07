@@ -82,6 +82,11 @@ In case client requires trust/identity validation of server with SSL at both end
    trust-material-secret - Password of keystore
 ```
 
+Parent Link: https://github.com/siddhivinayak-sk/mutual-ssl-server-client
+
+Client Link: https://github.com/siddhivinayak-sk/mutual-ssl-server-client/tree/main/mutual-ssl-server
+
+
 ## Technology Stack
 - Java 8 or later
 - Spring boot 2.x
