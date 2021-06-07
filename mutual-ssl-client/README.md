@@ -8,19 +8,19 @@ The REST based calls supports methods provided by HTTP along with configurable q
 There are four options with Transport Layer Security (TLS) implementation with HTTP protocol:
 1. No SSL/HTTP - This is basic implemenation of HTTP protocol where there is no TLS implementation from either side (server/client).
 
-No need to define additaionl configuration/arrangement for HTTP as it does not requires encryption.
+   No need to define additaionl configuration/arrangement for HTTP as it does not requires encryption.
 
 2. SSL (TLS) with Server without Trust Validation - When server resouce (the URL/endpoint exposed by server which has to be invoked by client) implements the TLS with a priavte key and hence the client must communicate in encrypted fashion. With this implemenation server implements private key at server but does not implement the trust validation at server level and hence only TLS implemented but client does not verified, therefore at client there is no any kind of private key or certificate required at client level, only need to establish connection with SSL enabled mode.
 
-To implement, no need to add additional configuration, only protocol HTTPS in URL will enable this.
+   To implement, no need to add additional configuration, only protocol HTTPS in URL will enable this.
 
 3. SSL (TLS) with Server with Trust Validation - In this implementation, server implements Private Key for TLS and a trust store which contains the clients certificate who is going to consume the server resouce. In other words, server will be on SSL and consumer client is validated with trust certificate which has been provided by client and therefore, client requries a private key which public key (X509 certificate) goes with each request to server and establish encrypted connection with certificate validatiion at server level.
 
-To implement, need to enable Key Material and define the Private Key for the key material.
+   To implement, need to enable Key Material and define the Private Key for the key material.
 
 4. Mutual SSL/Server with Trust Validation and Client with Server Identication Validation - This implementation is quite similar to Point 3 with addtion that client also contains a trust validation with server. In other words, client addtionally validates the server identity with a certifiate provided by server. Hence, it is called Mutual SSL and while making call to server, it requires a Private Key for client SSL & identification and Server public certificate to validate the server's identity.
 
-To implement, need to enable both Key & Trust Material and define the Private Key for the key material and Public Key certificates of server.
+   To implement, need to enable both Key & Trust Material and define the Private Key for the key material and Public Key certificates of server.
 
 ## Use Case
 The secuirty with any integration/communication over network is most important factor which must be assessed and handled perfrectly. With Hyper Text Transfer Protocol (HTTP) which runs over the sevenlayer of OSI model where there is a way to provide encryption on OSI's transport layer and hence it is also called Transport Layer Security (TLS). The TLS implementation with HTTP results in a new protocol called Hyper Text Transfer Protocol Secure (HTTPS) and also called HTTP with Secure Socket Layer (SSL).
