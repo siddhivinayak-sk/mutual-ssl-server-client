@@ -55,26 +55,32 @@ calls:
 ```
 
 Details:
-http-url - Takes target resource URL of server resource.
-http-method - Set HTTP method for the call like POST, GET, PUT, PATCH etc.
-diable-cookie-management - Enable/disable cookie management
-set-custom-connection-manager - This is implementation factor whether custom connection manager used.
-headers - List of headers to be sent to sever, provided with key and vaule pair e.g. Content-Type: plain/text etc.
-query-parameters - Way to provide query parameters (Optional) in key and value pair.
-request-body-path - Way to provide request body with POST or other methods (Optional).
-response-file - Way to direct server response to file (Optional), by default server headers and response printed to console with logger.
+```
+   http-url - Takes target resource URL of server resource.
+   http-method - Set HTTP method for the call like POST, GET, PUT, PATCH etc.
+   diable-cookie-management - Enable/disable cookie management
+   set-custom-connection-manager - This is implementation factor whether custom connection manager used.
+   headers - List of headers to be sent to sever, provided with key and vaule pair e.g. Content-Type: plain/text etc.
+   query-parameters - Way to provide query parameters (Optional) in key and value pair.
+   request-body-path - Way to provide request body with POST or other methods (Optional).
+   response-file - Way to direct server response to file (Optional), by default server headers and response printed to console with logger.
+```
 
 In case server requires trust validation at server level with SSL at both end, below parameters need to be defiend:
-key-material - To enable set true else false.
-key-material-type - Type of key store like PKCS12, JKS etc.
-key-material-path - Provide path of the keystore.
-key-material-secret - Password of keystore
+```
+   key-material - To enable set true else false.
+   key-material-type - Type of key store like PKCS12, JKS etc.
+   key-material-path - Provide path of the keystore.
+   key-material-secret - Password of keystore
+```
 
 In case client requires trust/identity validation of server with SSL at both end, below parameters need to be defiend:
-trust-material - To enable set true else false.
-trust-material-type - Type of key store like PKCS12, JKS etc.
-trust-material-path - Provide path of the keystore.
-trust-material-secret - Password of keystore
+```
+   trust-material - To enable set true else false.
+   trust-material-type - Type of key store like PKCS12, JKS etc.
+   trust-material-path - Provide path of the keystore.
+   trust-material-secret - Password of keystore
+```
 
 ## Technology Stack
 - Java 8 or later
