@@ -59,6 +59,9 @@ To configure SSL, a Private Key is required which is configured with server cont
 
 Trust validation of client is additional layer of security to verify the identity of client where a public certificate of trusted client is stored at the server trust store which is validated by server container when any requests comes to server. 
   
+Parent Link: https://github.com/siddhivinayak-sk/mutual-ssl-server-client
+Client Link: https://github.com/siddhivinayak-sk/mutual-ssl-server-client/tree/main/mutual-ssl-client
+
 
 ## Technology Stack
 - Java 8 or later
