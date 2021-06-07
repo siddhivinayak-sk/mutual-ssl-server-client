@@ -1,52 +1,85 @@
-# Utility - Azure KeyVault with Jasypt and Java
+# Utility - HTTP/HTTPS Client Utility
 
 ## Description
-This spring based java project has been written to create a task to test the utilities written for Azure Key Vault implementation with Jasypt for using making sensitive configurations secure in Java applications.
+This utlity has been developed to make rest call based upon the configuration into the YAML. The utility is baked by RestTemplate powered by Spring and for execution purpose, Spring boot based task created which picks the configuration from YAML and make calls as per configuration.
 
-Vaults are used to store sensitive information securely with minimum possible access permission e.g.
-- Database credential
-- External system credential e.g. SFTP, Blob Storage, MQ connection credential etc.
-- Other sensitive information which used into application for business processing
-- Certificate used for authentication, trust or SSL purpose
-- Private Keys which are used to decrypt the encrypted data
+The REST based calls supports methods provided by HTTP along with configurable query parameters and request body. Although, this utility spports complete REST based client but specially focused on the security part of HTTP calls using Secure Socket Layer (SSL) and Trust based validation.
 
-Vault support to store below three objects:
-- Secret: A secret string, e.g. passwords, hostname/IPs etc.
-- Certificate: To store Certificate in PEM/PFX format
-- Key: To store Private/Public Key in PEM/PFX format
+There are four options with Transport Layer Security (TLS) implementation with HTTP protocol:
+1. No SSL/HTTP - This is basic implemenation of HTTP protocol where there is no TLS implementation from either side (server/client).
 
-Using this technical utility, one can easy implement Azure KeyVault in application for storing yaml configuration, database credential, Azure Blob Credential and so on. 
+No need to define additaionl configuration/arrangement for HTTP as it does not requires encryption.
 
+2. SSL (TLS) with Server without Trust Validation - When server resouce (the URL/endpoint exposed by server which has to be invoked by client) implements the TLS with a priavte key and hence the client must communicate in encrypted fashion. With this implemenation server implements private key at server but does not implement the trust validation at server level and hence only TLS implemented but client does not verified, therefore at client there is no any kind of private key or certificate required at client level, only need to establish connection with SSL enabled mode.
+
+To implement, no need to add additional configuration, only protocol HTTPS in URL will enable this.
+
+3. SSL (TLS) with Server with Trust Validation - In this implementation, server implements Private Key for TLS and a trust store which contains the clients certificate who is going to consume the server resouce. In other words, server will be on SSL and consumer client is validated with trust certificate which has been provided by client and therefore, client requries a private key which public key (X509 certificate) goes with each request to server and establish encrypted connection with certificate validatiion at server level.
+
+To implement, need to enable Key Material and define the Private Key for the key material.
+
+4. Mutual SSL/Server with Trust Validation and Client with Server Identication Validation - This implementation is quite similar to Point 3 with addtion that client also contains a trust validation with server. In other words, client addtionally validates the server identity with a certifiate provided by server. Hence, it is called Mutual SSL and while making call to server, it requires a Private Key for client SSL & identification and Server public certificate to validate the server's identity.
+
+To implement, need to enable both Key & Trust Material and define the Private Key for the key material and Public Key certificates of server.
 
 ## Use Case
-In higher environment like production, application resource must have appropriate security. The 'security' is not only required for externals but also from internal stake holders like development team, deployment team, infrastructure team based upon the data/business process being used into application.
+The secuirty with any integration/communication over network is most important factor which must be assessed and handled perfrectly. With Hyper Text Transfer Protocol (HTTP) which runs over the sevenlayer of OSI model where there is a way to provide encryption on OSI's transport layer and hence it is also called Transport Layer Security (TLS). The TLS implementation with HTTP results in a new protocol called Hyper Text Transfer Protocol Secure (HTTPS) and also called HTTP with Secure Socket Layer (SSL).
 
-There are numerous concern and solution for resource security from externals and similar for internals. And one of the internal security concern here to protect/keep sensitive access details example, database credential, integration credential, private keys, certificates and so on.
+Since HTTP is based upon request and response therefore bidirectional communication happens and encryption requires at both end and similarily decryption also requires to happen at both end. Therefore, there are multiple ways with implementation with HTTPS which discussed into the Description section.
 
-This security concern requires to implement the access based mechanism so that the users who are not authorized to use can not access the resources.
+This client depicts the different implementation of SSL with clients.
 
-Most popular way is to protect such details in ENCRYPT and store into  VAULT with proper access restrictions.
-Consider a example, suppose there is a web application which usages a database and database contains the sensitive/personal information about the users of application.
-Now in this scenario, the personal information must be secure. To make it secure, need to store encrypted data into database and keep the database credential very secure with limited access.
+To use this utlity, below are the properties need to provide into the YAML for each call (multiple, calls can also be configrued in YAML):
+```
+calls:
+  - http-url: 'https://www.myserver.com/test'
+    http-method: GET
+    key-material: true
+    key-material-type: PKCS12
+    key-material-path: classpath:client.p12.jks
+    key-material-secret: 123456
+    trust-material: true
+    trust-material-type: JKS
+    trust-material-path: classpath:client_truststore.jks
+    trust-material-secret: 123456
+    diable-cookie-management: true
+    set-custom-connection-manager: true
+    headers:
+      #Accept: '*/*'
+      Connection: keep-alive
+      Host: www.myclient.com
+    query-parameters:
+      abc: abc
+    request-body-path: classpath:readme.txt
+    #response-file: c:/temp/myserver.htm
+```
 
-Since, database credential ultimately required into the application to establish connection, it must be stored somewhere into database like in code/property file/yaml/xml configuration. Which is vulnerable from internal stake holders like infra team, developers etc.
+Details:
+http-url - Takes target resource URL of server resource.
+http-method - Set HTTP method for the call like POST, GET, PUT, PATCH etc.
+diable-cookie-management - Enable/disable cookie management
+set-custom-connection-manager - This is implementation factor whether custom connection manager used.
+headers - List of headers to be sent to sever, provided with key and vaule pair e.g. Content-Type: plain/text etc.
+query-parameters - Way to provide query parameters (Optional) in key and value pair.
+request-body-path - Way to provide request body with POST or other methods (Optional).
+response-file - Way to direct server response to file (Optional), by default server headers and response printed to console with logger.
 
-To overcome from this problem, there are two solutions,
-1. Encrypt the contents available into yaml/configuration file
-2. Keep the encryption key into Vault
-3. Store certificate or other details into Vault
+In case server requires trust validation at server level with SSL at both end, below parameters need to be defiend:
+key-material - To enable set true else false.
+key-material-type - Type of key store like PKCS12, JKS etc.
+key-material-path - Provide path of the keystore.
+key-material-secret - Password of keystore
 
-When application boot up/whenever request is made to access, request will be made to Vault and details are obtained.
-The Vault access is so restricted that it will be access only by the production server/network/super users.
-  
+In case client requires trust/identity validation of server with SSL at both end, below parameters need to be defiend:
+trust-material - To enable set true else false.
+trust-material-type - Type of key store like PKCS12, JKS etc.
+trust-material-path - Provide path of the keystore.
+trust-material-secret - Password of keystore
 
 ## Technology Stack
 - Java 8 or later
 - Spring boot 2.x
 - Maven as build tool
-- Azure Blob Storage (Example purpose only)
-- Azure Key Vault
-- Jasypt
 
 
 
@@ -59,119 +92,8 @@ mvn clean package
 ```
 
 ## Deployment 
-These utilities can be used as library in the domain projects or referece can be taken. 
-
-## Encrypt values of YAML
-Jasypt has been used here which provides property encryption feature with application properties/yaml configuration. Below are the steps:
-1. Configure Jasypt in application by defining needed parameters like secretCode, algorithm etc.
-2. Encrypt values by using
+This utlity can be used as library in the domain projects or referece can be taken or can be invoked directly for testing purpose by using below command.
 
 ```
-com.azure.keyvault.utils.EncryptionDecryptionUtils
-E.g.
-		String key = "myapp123";
-		setKeyForJasyptEncryptionDecryption(key, "PBEWithMD5AndDES", 1000, "SunJCE", "base64");
-		
-		String secretValutToEncrypt = "p@ssw0rd";
-		System.out.println(encryptForJasypt(secretValutToEncrypt));
-
-```
-3. Once obtained encrypted values mention into configuraiton yaml/properties file with Wrapper method ENC e.g.
-
-```
-spring.datasource.password=ENC(KZ6be0jCfWIVMBcXfGTjyy1B3ma1odlP)
-```
- 
-
-## Configuration
-The configuration contains mainly two type of configuration in Properties file:
-###1. Jasypt Configruation - Custom Jasypt configuration to eanble encrypted value into the properties/yaml configuration. Below are the properties need to define:
-
-A. Define PooledPBEStringEncryptor with custom encryption values
-
-```
-jasypt.encryptor.bean=encryptorBean
-```
-B. Create two ways to get Jasypt encryption key: online from Azure Vault and offline from application boot argument.
-In case online is false, then define Jasypt key as, java -jar azure-key-vault.jar secretCode=myapp123
-
-```
-encryption.get-key-online=true
-````
-C. Define the algorith for encryption
-
-```
-encryption.algorithm=PBEWithMD5AndDES
-```
-D. Define key obtention iteration
-
-``` 
-encryption.key-obtention-iterations=1000
-```
-E. Pooled PBEStringEncryptor pool size
-
-```
-encryption.pool-size=1
-```
-F. Encryption provider, SunJCE is default provider by JRE
-
-```
-encryption.provider-name=SunJCE
-```
-G. Define salt generator class
-
-```
-encryption.salt-generator-class-name=org.jasypt.salt.RandomSaltGenerator
-```
-H. Define output type of encrypted string
-
-```
-encryption.string-output-type=base64
-```
-
-A utility has been created to create encrypted values by using the key provided (either from vault/starting argument).
-
- 
-
-###2. Azure Vault Configuration - With this section Azure KeyVault configuration is defined so that keys/other configuration can be obtained from KeyVault
-
-A. Define login URL for Azure - Note: This is fixed for Azure Vault
-
-```
-azure-keyvault.azure-login-uri=https://login.microsoftonline.com/
-```
-B. Define scope for getting authentication token - Note: This value is fixed for Azure Vault
-
-```
-azure-keyvault.scope=https://vault.azure.net
-```
-C. Define Azure KeyVault URL - Obtain from Azure KeyVault page
-
-```
-azure-keyvault.resource-uri=
-```
-D. Define TenantID/DirectoryID from Azure KeyVault for obtaining Authentication token - Obtain it from Azure KeyVault page
-
-```
-azure-keyvault.tenant-id=
-```
-E. Define client ID which obtain secret from Azure KeyVault - Obtain from Access policy section from KeyVault page
-
-```
-azure-keyvault.client-id=
-```
-F. Define key for specified client Id in E. - Obtain from client defining page for the Azure KeyVault
-
-```
-azure-keyvault.client-key=
-```
-G. Name of the secret defined into Azure KeyValut and it's value will be used as secretCode for Jasypt
-
-```
-azure-keyvault.secret-name=secretCode
-```
-H. Custom Implementation for Fallback: Define default value of requested secret from Azure KeyVault, the default value will be returned in case of any exception while getting value from Azure KeyVault
-
-```
-azure-keyvault.secret-default-value=myapp123
+java -jar <jar file name>
 ```
