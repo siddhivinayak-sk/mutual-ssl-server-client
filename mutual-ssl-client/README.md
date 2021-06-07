@@ -84,7 +84,7 @@ In case client requires trust/identity validation of server with SSL at both end
 
 Parent Link: https://github.com/siddhivinayak-sk/mutual-ssl-server-client
 
-Client Link: https://github.com/siddhivinayak-sk/mutual-ssl-server-client/tree/main/mutual-ssl-server
+Server Link: https://github.com/siddhivinayak-sk/mutual-ssl-server-client/tree/main/mutual-ssl-server
 
 
 ## Technology Stack
