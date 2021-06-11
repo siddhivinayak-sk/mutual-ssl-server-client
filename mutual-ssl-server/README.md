@@ -1,13 +1,13 @@
 # Server - with SSL implementation
 
 ## Description
-This spring based java project has been written to create a sever applicaiton backed by tomcat container to expose some resource end points which will be consumed by REST client to demostrate the SSL implementaiton with server applications.
+This spring based Java project has been written to create a sever application backed by tomcat container to expose some resource end points which will be consumed by REST client to demonstrate the SSL implementation with server applications.
 
 The code has been written in a way that it can be enabled/disabled with configuration only to test each scenario of SSL implementation.
 
 There are three different implementations of TLS at server:
 
-1. No SSL/HTTP - This is basic implemenation of HTTP protocol where there is no TLS implementation from either side (server/client).
+1. No SSL/HTTP - This is basic implementation of HTTP protocol where there is no TLS implementation from either side (server/client).
 
    Disable below configuration by setting security.require-ssl: false, set server.port to 80 and commenting other properties listed here:
    
@@ -37,7 +37,7 @@ There are three different implementations of TLS at server:
    server.ssl.key-store-password : 123456
    ```
 
-3. SSL (TLS) with Server with Trust Validation - In this implemenation, the communication happen on SSL with Client authentication/validation based upon the client certificate. In this configuration, a private key is setup for SSL and a keystore is configured which is used to store trust certficates of client.
+3. SSL (TLS) with Server with Trust Validation - In this implementation, the communication happen on SSL with Client authentication/validation based upon the client certificate. In this configuration, a private key is setup for SSL and a keystore is configured which is used to store trust certificates of client.
 
    To implement, need to enable the trust validation.
    ```
@@ -48,7 +48,7 @@ There are three different implementations of TLS at server:
    ```
 
 ## Use Case
-The secuirty with any integration/communication over network is most important factor which must be assessed and handled perfrectly. With Hyper Text Transfer Protocol (HTTP) which runs over the seven layers of OSI model where there is a way to provide encryption on OSI's transport layer and hence it is also called Transport Layer Security (TLS). The TLS implementation with HTTP results in a new protocol called Hyper Text Transfer Protocol Secure (HTTPS) and also called HTTP with Secure Socket Layer (SSL).
+The security with any integration/communication over network is most important factor which must be assessed and handled perfectly. With Hyper Text Transfer Protocol (HTTP) which runs over the seven layers of OSI model where there is a way to provide encryption on OSI's transport layer and hence it is also called Transport Layer Security (TLS). The TLS implementation with HTTP results in a new protocol called Hyper Text Transfer Protocol Secure (HTTPS) and also called HTTP with Secure Socket Layer (SSL).
 
 To protect data in transit, SSL is a proven solution for data theft and data corruption. To implement SSL in server, the most server containers provide in built mechanism which need to configure. When SSL is configured, an key is required which will be used for following purpose:
 - Key for encryption while sending data to client for encrypted data transit.
@@ -84,7 +84,7 @@ After compile and build, this will result in a runnable jar file which can be in
 java -jar <jar file name>
 ```
 
-In case, if need to externalize the YAML configruation and run with external YAML:
+In case, if need to externalize the YAML configuration and run with external YAML:
 
 ```
 java -jar <jar file name> --spring.config.additional-location=<path of yaml file>
@@ -92,7 +92,7 @@ java -jar <jar file name> --spring.config.additional-location=<path of yaml file
 
 
 ## Configuration
-The server applicaiton has been written in way to test different scenarios. Below are description of configruation:
+The server application has been written in way to test different scenarios. Below are description of configuration:
 
 ```
 server.port : 443
@@ -133,7 +133,7 @@ validation.publicKeySequence :  clientcert
 - logging.file - Log file name.
 - logging.config - Log4j2 configuration file path.
 - security.require-ssl - If need to enable SSL/TLS with server set to true else set false.
-- server.ssl.key-store-type - Type of keystore configurated for SSL.
+- server.ssl.key-store-type - Type of keystore configuration for SSL.
 - server.ssl.key-alias - Alias name of the key available into the Keystore which will be used for SSL.
 - server.ssl.key-store - Path of keystore file.
 - server.ssl.key-store-password - Password for the keystore.
@@ -142,10 +142,10 @@ validation.publicKeySequence :  clientcert
 - server.ssl.trust-store - Path of the keystore used for storing trust certificate.
 - server.ssl.trust-store-password - Password of trust keystore.
 - cn.usernames - Provide list of CN names of client.
-- header.validation.required - If additional header, payload validation requried. Enable it with true value.
+- header.validation.required - If additional header, payload validation required. Enable it with true value.
 - validation.keystoretype - Type of keystore file which used in header validation.
 - validation.keystorePath - Path of the keystore used to store the certificate which will be used for header signature validation.
 - validation.keystoreSecret - Password of validation keystore.
 - validation.publicKeySequence - Alias of the certificate used for header validation.
 
-Note: The Jasypt, Key Vault implemenation are optional.
+Note: The Jasypt, Key Vault implementation are optional.
