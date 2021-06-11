@@ -2,6 +2,7 @@ package com.sk.server.util;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -10,25 +11,33 @@ import java.security.Signature;
 import java.security.SignatureException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.naming.InvalidNameException;
+import javax.naming.ldap.LdapName;
+import javax.naming.ldap.Rdn;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.Resource;
 
 import com.sk.server.exception.InvalidHeaderException;
 
 @Configuration
-@ConditionalOnProperty(value = "security.require-ssl", havingValue = "true", matchIfMissing = true)
+//@ConditionalOnProperty(value = "security.require-ssl", havingValue = "true", matchIfMissing = true)
 public class RequestValidationUtil {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(RequestValidationUtil.class);
@@ -51,9 +60,27 @@ public class RequestValidationUtil {
 	private static String keystorePath;
 	private static String keystoreSecret;
 	private static String publicKeySequence;
+	private static boolean varCustomTrustStoreAuth;
+	private static String varCustomTrustStoreType;
+	private static Resource varCustomTrustStore;
+	private static String varCustomTrustStorePassword;
+	private static List<String> varCnUsernames;
+	
 
 	private static Map<String, String> keystoreDetails = new HashMap<>();
 
+	@Value("${custom.client-auth:false}")
+	private boolean customTrustStoreAuth;
+
+	@Value("${custom.trust-store-type:}")
+	private String customTrustStoreType;
+
+	@Value("${custom.trust-store:}")
+	private Resource customTrustStore;
+
+	@Value("${custom.trust-store-password:}")
+	private String customTrustStorePassword;
+	
 	@Value("${validation.keystoretype}")
 	private String keystoreTypeVal;
 	
@@ -62,17 +89,25 @@ public class RequestValidationUtil {
 
 	@Value("${validation.publicKeySequence}")
 	private String publicKeySequenceVal;
-	
+
+	@Value("#{'${cn.usernames}'.split(',')}")
+	private List<String> cnUsernames;
+
 	@Value("${validation.keystoreSecret}")
 	public void setKeystoreSecret(String keystoreSecret) {
-		setValues(keystoreSecret, publicKeySequenceVal, keystorePathVal, keystoreTypeVal);
+		setValues(keystoreSecret, publicKeySequenceVal, keystorePathVal, keystoreTypeVal, customTrustStoreAuth, customTrustStoreType, customTrustStore, customTrustStorePassword, cnUsernames);
 	}
 	
-	private static void setValues(String keystoreSecret, String publicKeySequence, String keystorePath, String keystoreType) {
+	private static void setValues(String keystoreSecret, String publicKeySequence, String keystorePath, String keystoreType, boolean customTrustStoreAuth, String customTrustStoreType, Resource customTrustStore, String customTrustStorePassword, List<String> cnUsernames) {
 		RequestValidationUtil.keystoreSecret = keystoreSecret;
 		RequestValidationUtil.publicKeySequence = publicKeySequence;
 		RequestValidationUtil.keystorePath = keystorePath;
 		RequestValidationUtil.keystoreType = keystoreType;
+		RequestValidationUtil.varCustomTrustStoreAuth = customTrustStoreAuth; 
+		RequestValidationUtil.varCustomTrustStoreType = customTrustStoreType;
+		RequestValidationUtil.varCustomTrustStore = customTrustStore;
+		RequestValidationUtil.varCustomTrustStorePassword = customTrustStorePassword;
+		RequestValidationUtil.varCnUsernames = cnUsernames;
 	}
 	
 
@@ -157,5 +192,58 @@ public class RequestValidationUtil {
 		}
 
 	}
+	
+	
 
+	public static boolean customTrustStoreValidation(HttpServletRequest request) {
+		if(!varCustomTrustStoreAuth) {
+			return true;
+		}
+		X509Certificate certs[] = (X509Certificate[])request.getAttribute("javax.servlet.request.X509Certificate");
+		if(null == certs || certs.length == 0) {
+			return false;
+		}
+		try(InputStream trustInputStream = varCustomTrustStore.getInputStream()) {
+			KeyStore trustKeyStore = KeyStore.getInstance(varCustomTrustStoreType);
+			trustKeyStore.load(trustInputStream, varCustomTrustStorePassword.toCharArray());
+			for(X509Certificate inCert:certs) {
+				try {
+					String ownCertAlias = trustKeyStore.getCertificateAlias(inCert);
+					X509Certificate ownCert = (X509Certificate)trustKeyStore.getCertificate(ownCertAlias);
+					boolean issuerDNValidation = ownCert.getIssuerDN().equals(inCert.getIssuerDN());
+					boolean certificateEquals = Base64.getEncoder().encodeToString(ownCert.getEncoded()).equals(Base64.getEncoder().encodeToString(inCert.getEncoded()));
+					boolean signatureEquals = Base64.getEncoder().encodeToString(ownCert.getSignature()).equals(Base64.getEncoder().encodeToString(inCert.getSignature()));
+					boolean cnNameValidation = varCnUsernames.contains(getCNName(inCert));
+					inCert.checkValidity();
+					TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+					trustManagerFactory.init(trustKeyStore);
+					for (TrustManager trustManager: trustManagerFactory.getTrustManagers()) {  
+					    if (trustManager instanceof X509TrustManager) {  
+					        X509TrustManager x509TrustManager = (X509TrustManager)trustManager;  
+					        x509TrustManager.checkClientTrusted(certs, "RSA");
+					    }  
+					}
+					if(issuerDNValidation && certificateEquals && signatureEquals && cnNameValidation) {
+						return true;
+					}
+				} catch (Exception e) {
+					continue;
+				}
+			}
+			return false;
+		} catch (NoSuchAlgorithmException | IOException | KeyStoreException | CertificateException e) {
+			return false;
+		}
+	}
+	
+	private static String getCNName(X509Certificate cert) throws InvalidNameException {
+		String dn = cert.getSubjectX500Principal().getName();
+		LdapName ldapDN = new LdapName(dn);
+		for(Rdn rdn: ldapDN.getRdns()) {
+			if(rdn.getType().equalsIgnoreCase("CN")) {
+				return rdn.getValue().toString();
+			}
+		}
+		return null;
+	}
 }
